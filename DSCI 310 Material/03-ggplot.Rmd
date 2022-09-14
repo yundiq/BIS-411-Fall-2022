@@ -1,0 +1,137 @@
+---
+title: "Getting started with R and ggplot2"
+author: "Brian D. Davison"
+date: "31 January 2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+ 
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+Try using Preview to see the rendered version of this document!
+
+---
+
+## A grammar for data graphics
+
+*ggplot2 is the reason I learned R at Facebook!*
+
+ggplot2 is a charting/graphing/plotting system for R
+
+* based on the grammar of graphs
+* handles many of the details automatically
+* http://ggplot2.org/ 
+
+Important ideas from Chapter 3:
+
+* An *aesthetic* is a mapping between a variable and the visual cues that represent its values.  
+* A *glyph* is the basic graphical element that represents one item (other terms used include “mark” and “symbol”).
+* The positions of a glyph on the plot—in both the horizontal and vertical senses—are the *visual cues* that help the viewer understand how big the corresponding quantities are. 
+* The *aesthetic* is the mapping that defines these correspondences.
+
+### Getting started
+
+Install ggplot2 (in the Console) as you must do for all contributed packages (just once)
+
+* ```install.packages("ggplot2")```
+
+or better, install the tidyverse library (which includes ggplot2 and other libraries of interest)
+
+* ```install.packages("tidyverse")```
+
+
+```{r}
+library(ggplot2)
+```
+
+## Plotting with ggplot - histogram
+
+Let's start by considering plotting a single variable (attribute) of the iris dataset: a histogram.  Notice the first line doesn't display anything; it just sets up the plot and stores it in an object.
+
+```{r}
+g <- ggplot(data=iris, aes(x=Sepal.Length))
+g + geom_histogram()
+```
+
+```{r}
+g <- ggplot(data=iris, aes(x=Petal.Width))
+g + geom_histogram()
+```
+
+## Plotting with ggplot - boxplots
+
+There are other kinds of plots to visualize a single variable.
+
+What is a boxplot? The lower and upper hinges correspond to the first and third quartiles (the 25th and 75th percentiles). The upper whisker extends from the hinge to the largest value no further than 1.5 * IQR from the hinge (where IQR is the inter-quartile range, or distance between the first and third quartiles).
+
+```{r}
+g + geom_boxplot()
+```
+
+But a single boxplot is pretty boring; it's more often used for comparisons against other variables.  So let's consider the boxplot of each type of iris:
+
+```{r}
+g <- ggplot(data=iris, aes(x=Species, y=Sepal.Length))
+g + geom_boxplot()
+```
+
+Note the x axis!
+
+Also, the dot below the virginica boxplot is a point (an outlier) that lies more than 1.5x the interquartile range (the vertical span of the inner quartiles).
+
+There are other geoms – geometric objects (kinds of plots).  Consider the violin plot:
+
+```{r}
+g <- ggplot(data=iris, aes(x=Species, y=Sepal.Length))
+g + geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))
+```
+
+
+## Plotting with ggplot with two aesthetics - a scatterplot
+
+```{r}
+str(iris)
+g <- ggplot(data=iris, aes(x=Sepal.Length, y=Sepal.Width))
+g + geom_point(size = 3)
+```
+Not all that informative.  But if we color the points by Species (as a third aesthetic):
+```{r}
+g + geom_point(aes(color=Species), size = 3)
+```
+Here we see that when considering these two attributes, two species are mixed, and a third  (setosa) is mostly separate.  We will find this kind of insight to be quite valuable when we consider building models of the data.
+
+One can also control the shape of the point (and many other aspects of such plots). 
+
+```{r}
+g + geom_point(aes(color=Species, shape=Species), size = 3)
+```
+Chapter 3 shows how to change the axes (e.g., log scale), the sizes of the points (e.g., to illustrate another attribute), etc.
+
+
+## Plotting with ggplot - factors
+
+Sometimes it is better to see plots side by side rather than combined.
+
+Facets show the same kind of plot but repeated with different sub-collections of data labeled by levels of a factor.  
+```{r}
+g + geom_point(aes(color=Species), size = 2) + facet_wrap(~Species, nrow = 1)
+```
+
+## Plotting with ggplot - objects
+
+* We've already seen that plots can be stored in objects.  We can add additional layers.
+* In this additional layer, **lm** is an ordinary least squares trendline (which also shows confidence intervals as grey areas).
+```{r}
+g + geom_point(aes(color=Species), size = 3) + facet_wrap(~Species, nrow = 1) + geom_smooth(method="lm")
+```
+## Saving plots - ggsave
+
+* Saving your current image is simple - **```ggsave()```**.
+* It detects the desired format based on file extension (e.g., eps, pdf, jpeg, png, svg and more).
+* Use help(ggsave) to learn about other options (e.g., output dimensions, dpi, etc.).
+```{r}
+ggsave("FacetsWithTrend.jpg")
+```
